@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linux-web-log-sql-analyzer"
+version = "0.1.0"
+description = "Parse Linux web server access logs into SQLite and analyze traffic, errors, and suspicious patterns."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+]
+test = [
+    "httpx>=0.28.0",
+]
+
+[project.scripts]
+web-log-sql = "linux_web_log_sql_analyzer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"

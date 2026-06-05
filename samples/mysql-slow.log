@@ -1,0 +1,10 @@
+# Time: 2026-06-04T00:02:10.123456+00:00
+# User@Host: app[app] @ localhost []
+# Query_time: 1.250000  Lock_time: 0.000100 Rows_sent: 10  Rows_examined: 12500
+SET timestamp=1780531330;
+SELECT * FROM members WHERE email = 'user@example.test';
+# Time: 2026-06-04T00:03:44.000000+00:00
+# User@Host: app[app] @ localhost []
+# Query_time: 0.430000  Lock_time: 0.000000 Rows_sent: 1  Rows_examined: 3000
+SET timestamp=1780531424;
+DELETE FROM sessions WHERE expires_at < NOW();

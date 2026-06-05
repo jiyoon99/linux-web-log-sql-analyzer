@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build
+          python -m pip install -e ".[web,test]"
+          python -m pip check
+
+      - name: Package build
+        run: python -m build
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests
+
+      - name: CLI smoke test
+        run: |
+          web-log-sql ingest samples/nginx-access.log --db data/ci.db
+          web-log-sql ingest-sql samples/sql-execution.log --db data/ci.db
+          web-log-sql summary --db data/ci.db
+          web-log-sql sql-summary --db data/ci.db
+          web-log-sql export slow-sql --db data/ci.db --format json
+
+      - name: Docker config
+        run: docker compose config
+
+      - name: Docker build
+        run: docker build -t linux-web-log-sql-analyzer:ci .
+
+      - name: Docker smoke test
+        run: |
+          docker run -d --name log-sql-ci -p 127.0.0.1:18081:18080 linux-web-log-sql-analyzer:ci
+          trap 'docker logs log-sql-ci; docker rm -f log-sql-ci' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18081/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1

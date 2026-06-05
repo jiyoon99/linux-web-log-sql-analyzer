@@ -1,0 +1,5 @@
+[2026-06-04 00:00:03] 18ms SELECT id, email FROM members WHERE email = 'user@example.test'
+[2026-06-04 00:00:07] 132ms SELECT * FROM orders WHERE member_id = 42 ORDER BY created_at DESC
+[2026-06-04 00:00:09] 41ms UPDATE items SET view_count = view_count + 1 WHERE id = 7
+[2026-06-04 00:01:11] 2.4s SELECT * FROM order_item JOIN orders ON order_item.order_id = orders.id WHERE orders.status = 'READY'
+this is not a sql execution log
