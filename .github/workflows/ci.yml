@@ -44,12 +44,15 @@ jobs:
           web-log-sql export slow-sql --db data/ci.db --format json
 
       - name: Docker config
+        if: matrix.python-version == '3.12'
         run: docker compose config
 
       - name: Docker build
+        if: matrix.python-version == '3.12'
         run: docker build -t linux-web-log-sql-analyzer:ci .
 
       - name: Docker smoke test
+        if: matrix.python-version == '3.12'
         run: |
           docker run -d --name log-sql-ci -p 127.0.0.1:18081:18080 linux-web-log-sql-analyzer:ci
           trap 'docker logs log-sql-ci; docker rm -f log-sql-ci' EXIT
