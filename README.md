@@ -4,7 +4,7 @@ Linux 웹 서버 access log와 SQL 실행 로그를 SQLite에 적재하고 SQL �
 
 기존 Linux 운영 프로젝트와 연결해 “로그를 DB화하고, 지표로 판단하고, 운영 리포트로 남기는 흐름”을 보여주는 것이 목표입니다.
 
-## Key Features
+## Key Features / 주요 기능
 
 - nginx/apache common, combined access log 파싱
 - MySQL slow query log와 단순 SQL execution log 파싱
@@ -23,7 +23,7 @@ Linux 웹 서버 access log와 SQL 실행 로그를 SQLite에 적재하고 SQL �
 - HTML escape와 parameterized SQL 기반 안전한 조회
 - 샘플 로그와 단위 테스트 포함
 
-## Quick Start
+## Quick Start / 빠른 시작
 
 Python 3.10 이상을 지원합니다. CI는 Python 3.10과 3.12에서 테스트와 Docker smoke test를 실행합니다.
 
@@ -49,7 +49,7 @@ web-log-sql serve --db data/logs.db --host 127.0.0.1 --port 18080
 PYTHONPATH=src python3 -m linux_web_log_sql_analyzer.cli ingest samples/nginx-access.log --db data/logs.db
 ```
 
-## CLI
+## CLI / 명령줄 사용법
 
 ```text
 web-log-sql init --db data/logs.db
@@ -72,7 +72,7 @@ GET /api/v1/sql-logs?statement_type=SELECT&min_duration_ms=100
 GET /api/v1/metrics/slow-sql?limit=10
 ```
 
-## Data Model
+## Data Model / 데이터 모델
 
 ```text
 access_logs
@@ -112,7 +112,7 @@ sql_logs
 
 `raw_line`은 원본 확인을 위해 저장하지만, 웹 화면에서는 HTML escape 처리합니다. SQL은 parameterized query만 사용합니다.
 
-## Test
+## Test / 테스트
 
 ```bash
 pip install -e ".[web,test]"
@@ -125,7 +125,7 @@ python3 -m unittest discover -s tests
 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
 
-## Build
+## Build / 빌드
 
 온라인 환경이나 CI에서는 격리 빌드를 사용합니다.
 
@@ -141,7 +141,7 @@ pip install build setuptools wheel
 python3 -m build --no-isolation
 ```
 
-## Docker
+## Docker / Docker 실행
 
 ```bash
 docker compose up --build
@@ -155,7 +155,7 @@ http://127.0.0.1:18080
 
 컨테이너 이미지는 샘플 access log와 SQL log를 `data/dashboard.db`에 적재한 뒤 대시보드를 실행합니다.
 
-## Roadmap
+## Roadmap / 로드맵
 
 - PostgreSQL ingest 모드 추가
 - nginx error log 파서 추가
