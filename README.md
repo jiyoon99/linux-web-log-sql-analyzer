@@ -163,3 +163,7 @@ http://127.0.0.1:18080
 - Docker Compose 대시보드 실행
 - Prometheus metrics export
 - 보안 이벤트 리포트 템플릿
+
+## License / 라이선스
+
+MIT License. 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
