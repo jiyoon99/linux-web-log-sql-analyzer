@@ -4,7 +4,11 @@ Linux 웹 서버 access log와 SQL 실행 로그를 SQLite에 적재하고 SQL �
 
 기존 Linux 운영 프로젝트와 연결해 “로그를 DB화하고, 지표로 판단하고, 운영 리포트로 남기는 흐름”을 보여주는 것이 목표입니다.
 
-## Key Features / 주요 기능
+## What I Built / 만든 것
+
+nginx·Apache access log와 SQL 실행 로그를 공통 데이터 모델로 정규화해 SQLite에 저장하고, CLI 명령과 FastAPI 대시보드에서 트래픽·오류·보안 의심 패턴·느린 SQL을 조회할 수 있게 만들었습니다.
+
+## Main Features / 주요 기능
 
 - nginx/apache common, combined access log 파싱
 - MySQL slow query log와 단순 SQL execution log 파싱
@@ -22,6 +26,29 @@ Linux 웹 서버 access log와 SQL 실행 로그를 SQLite에 적재하고 SQL �
 - token/password/api_key/session query value 마스킹
 - HTML escape와 parameterized SQL 기반 안전한 조회
 - 샘플 로그와 단위 테스트 포함
+
+## Development / 개발 방식
+
+```text
+log file
+   ↓
+format-specific parser
+   ↓
+normalized record and masking
+   ↓
+SQLite insert with source/line deduplication
+   ↓
+parameterized SQL aggregation
+   ├── CLI summary/export
+   └── FastAPI dashboard/API
+```
+
+- access log와 SQL log parser를 분리하고 결과를 각각 `access_logs`, `sql_logs` schema로 정규화했습니다.
+- `source + line_no` 기준으로 같은 로그 파일을 다시 적재해도 중복 row를 만들지 않습니다.
+- token, password, api key, session query value는 저장·표시 단계에서 마스킹합니다.
+- 사용자 필터는 parameterized SQL로 처리하고 원본 로그를 웹에 표시할 때 HTML escape를 적용합니다.
+- 집계 SQL과 화면 표현을 분리해 같은 분석 결과를 CLI, CSV/JSON, 웹 API에서 재사용합니다.
+- parser, ingest, query, export, web endpoint를 샘플 로그 기반 단위 테스트로 검증합니다.
 
 ## Quick Start / 빠른 시작
 
@@ -154,15 +181,6 @@ http://127.0.0.1:18080
 ```
 
 컨테이너 이미지는 샘플 access log와 SQL log를 `data/dashboard.db`에 적재한 뒤 대시보드를 실행합니다.
-
-## Roadmap / 로드맵
-
-- PostgreSQL ingest 모드 추가
-- nginx error log 파서 추가
-- anomaly threshold 설정 파일
-- Docker Compose 대시보드 실행
-- Prometheus metrics export
-- 보안 이벤트 리포트 템플릿
 
 ## License / 라이선스
 
