@@ -65,6 +65,9 @@ web-log-sql ingest-sql samples/sql-execution.log --db data/logs.db
 web-log-sql ingest-sql samples/mysql-slow.log --db data/logs.db
 web-log-sql summary --db data/logs.db
 web-log-sql sql-summary --db data/logs.db
+web-log-sql search-access --db data/logs.db --status 401 --format json
+web-log-sql search-sql --db data/logs.db --statement-type SELECT --min-duration-ms 100
+web-log-sql export parse-errors --db data/logs.db --format json
 web-log-sql export top-paths --db data/logs.db --format csv
 web-log-sql export slow-sql --db data/logs.db --format json
 web-log-sql serve --db data/logs.db --host 127.0.0.1 --port 18080
@@ -84,6 +87,9 @@ web-log-sql ingest samples/nginx-access.log --db data/logs.db
 web-log-sql ingest-sql samples/sql-execution.log --db data/logs.db
 web-log-sql summary --db data/logs.db
 web-log-sql sql-summary --db data/logs.db
+web-log-sql search-access --db data/logs.db --status 401 --format csv
+web-log-sql search-sql --db data/logs.db --statement-type SELECT --min-duration-ms 100 --format json
+web-log-sql export parse-errors --db data/logs.db --format json
 web-log-sql export status --db data/logs.db --format json
 web-log-sql export suspicious-ips --db data/logs.db --format csv
 web-log-sql export slow-sql --db data/logs.db --format json
@@ -98,6 +104,14 @@ GET /api/v1/logs?status=401&path=/login&limit=20
 GET /api/v1/sql-logs?statement_type=SELECT&min_duration_ms=100
 GET /api/v1/metrics/slow-sql?limit=10
 ```
+
+## Search Reports / 검색 리포트
+
+`search-access`와 `search-sql`은 기존 분석 결과를 조건 필터로 바로 조회하는 명령입니다.  
+운영 이슈를 확인할 때 전체 집계보다 빠르게 특정 요청이나 SQL 패턴을 볼 수 있습니다.
+
+`parse-errors`는 access log와 SQL log의 파싱 실패 행을 한 번에 모아 보여줍니다.
+웹 대시보드에도 `Parse Errors` 탭이 있습니다.
 
 ## Data Model / 데이터 모델
 

@@ -235,6 +235,34 @@ def sql_tables(conn: sqlite3.Connection, limit: int = 20) -> list[dict[str, obje
     )
 
 
+def parse_errors(conn: sqlite3.Connection, limit: int = 20) -> list[dict[str, object]]:
+    limit = clamp_limit(limit)
+    return rows_to_dicts(
+        conn.execute(
+            """
+            SELECT source,
+                   line_no,
+                   'access' AS log_type,
+                   parse_error,
+                   raw_line AS raw_text
+            FROM access_logs
+            WHERE parse_error IS NOT NULL
+            UNION ALL
+            SELECT source,
+                   line_no,
+                   'sql' AS log_type,
+                   parse_error,
+                   raw_entry AS raw_text
+            FROM sql_logs
+            WHERE parse_error IS NOT NULL
+            ORDER BY source ASC, line_no ASC, log_type ASC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+    )
+
+
 def search_sql_logs(
     conn: sqlite3.Connection,
     *,
@@ -288,6 +316,7 @@ EXPORTS = {
     "top-paths": top_paths,
     "suspicious-ips": suspicious_ips,
     "hourly": hourly_traffic,
+    "parse-errors": parse_errors,
     "slow-sql": slow_sql,
     "sql-types": sql_types,
     "sql-tables": sql_tables,

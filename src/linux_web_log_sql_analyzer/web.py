@@ -121,6 +121,7 @@ def create_app(db_path: str):
         with managed_connect(db_path) as conn:
             init_db(conn)
             overview = analyzer.overview(conn)
+            parse_errors = analyzer.parse_errors(conn, 20)
             sections = {
                 "Status": analyzer.status_summary(conn, 20),
                 "Top Paths": analyzer.top_paths(conn, 20),
@@ -146,6 +147,7 @@ def create_app(db_path: str):
                     limit=_optional_int(limit, 20, name="limit") or 20,
                     offset=_optional_int(offset, 0, name="offset") or 0,
                 ),
+                "Parse Errors": parse_errors,
             }
             sql_overview = analyzer.sql_overview(conn)
         active_tab = "sql" if tab == "sql" else "access"
@@ -197,6 +199,7 @@ def _render_dashboard(
 ) -> str:
     access_active = " active" if active_tab == "access" else ""
     sql_active = " active" if active_tab == "sql" else ""
+    parse_active = " active" if active_tab == "parse" else ""
     access_cards = _render_cards(
         [
             ("Requests", overview.get("total", 0)),
@@ -217,6 +220,7 @@ def _render_dashboard(
             ("Types", sql_overview.get("statement_types", 0)),
         ]
     )
+    parse_cards = _render_cards([("Parse Errors", len(sections.get("Parse Errors", [])))])
     status_chart = _render_bar_chart("Status Distribution", sections.get("Status", []), "status", "requests")
     hourly_chart = _render_bar_chart("Hourly Requests", sections.get("Hourly Traffic", []), "hour", "requests")
     return f"""<!doctype html>
@@ -278,6 +282,7 @@ def _render_dashboard(
     <nav class="tabs" aria-label="Dashboard sections">
       <button class="tab-button{access_active}" type="button" data-tab="access">Access Logs</button>
       <button class="tab-button{sql_active}" type="button" data-tab="sql">SQL Logs</button>
+      <button class="tab-button{parse_active}" type="button" data-tab="parse">Parse Errors</button>
     </nav>
 
     <div id="access" class="tab-panel{access_active}">
@@ -301,6 +306,11 @@ def _render_dashboard(
         {_render_table("SQL Types", sections.get("SQL Types", []), panel=True)}
         {_render_table("SQL Tables", sections.get("SQL Tables", []), panel=True)}
       </div>
+    </div>
+
+    <div id="parse" class="tab-panel{parse_active}">
+      <div class="grid">{parse_cards}</div>
+      {_render_table("Parse Errors", sections.get("Parse Errors", []))}
     </div>
   </main>
   <script>

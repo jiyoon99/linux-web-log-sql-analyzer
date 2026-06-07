@@ -18,13 +18,16 @@ class WebRenderTest(unittest.TestCase):
                 "SQL Types": [{"statement_type": "SELECT", "queries": 1}],
                 "SQL Tables": [{"table_name": "members", "queries": 1}],
                 "SQL Search Results": [{"statement": "SELECT * FROM members", "duration_ms": 15}],
+                "Parse Errors": [{"source": "samples/nginx-access.log", "line_no": 10, "log_type": "access", "parse_error": "unsupported access log format", "raw_text": "bad line"}],
             },
         )
 
         self.assertIn("data-tab=\"access\"", html)
+        self.assertIn("data-tab=\"parse\"", html)
         self.assertIn("action=\"/\"", html)
         self.assertIn("name=\"tab\" value=\"access\"", html)
         self.assertIn("name=\"tab\" value=\"sql\"", html)
+        self.assertIn("Parse Errors", html)
         self.assertIn("Access Search Results", html)
         self.assertIn("SQL Search Results", html)
         self.assertIn("Status Distribution", html)

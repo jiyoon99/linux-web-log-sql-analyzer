@@ -32,6 +32,14 @@ def build_parser() -> argparse.ArgumentParser:
     sql_summary = subcommands.add_parser("sql-summary", help="Print SQL log overview and slow query aggregates")
     _add_db_argument(sql_summary)
 
+    search_access = subcommands.add_parser("search-access", help="Search access log rows")
+    _add_access_search_arguments(search_access)
+    _add_db_argument(search_access)
+
+    search_sql = subcommands.add_parser("search-sql", help="Search SQL log rows")
+    _add_sql_search_arguments(search_sql)
+    _add_db_argument(search_sql)
+
     export = subcommands.add_parser("export", help="Export one aggregate query")
     export.add_argument("report", choices=sorted(analyzer.EXPORTS))
     export.add_argument("--format", choices=("json", "csv"), default="json")
@@ -48,6 +56,29 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _add_db_argument(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--db", default=argparse.SUPPRESS, help="SQLite database path")
+
+
+def _add_access_search_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--status", type=int)
+    parser.add_argument("--method")
+    parser.add_argument("--path")
+    parser.add_argument("--remote-addr")
+    parser.add_argument("--from-time")
+    parser.add_argument("--to-time")
+    parser.add_argument("--limit", type=int, default=50)
+    parser.add_argument("--offset", type=int, default=0)
+    parser.add_argument("--format", choices=("json", "csv"), default="json")
+
+
+def _add_sql_search_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--statement-type")
+    parser.add_argument("--table-name")
+    parser.add_argument("--min-duration-ms", type=float)
+    parser.add_argument("--from-time")
+    parser.add_argument("--to-time")
+    parser.add_argument("--limit", type=int, default=50)
+    parser.add_argument("--offset", type=int, default=0)
+    parser.add_argument("--format", choices=("json", "csv"), default="json")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -73,6 +104,33 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "sql-summary":
             _print_sql_summary(conn)
+            return 0
+        if args.command == "search-access":
+            rows = analyzer.search_access_logs(
+                conn,
+                status=args.status,
+                method=args.method,
+                path=args.path,
+                remote_addr=args.remote_addr,
+                from_time=args.from_time,
+                to_time=args.to_time,
+                limit=args.limit,
+                offset=args.offset,
+            )
+            _write_rows(rows, args.format)
+            return 0
+        if args.command == "search-sql":
+            rows = analyzer.search_sql_logs(
+                conn,
+                statement_type=args.statement_type,
+                table_name=args.table_name,
+                min_duration_ms=args.min_duration_ms,
+                from_time=args.from_time,
+                to_time=args.to_time,
+                limit=args.limit,
+                offset=args.offset,
+            )
+            _write_rows(rows, args.format)
             return 0
         if args.command == "export":
             rows = analyzer.EXPORTS[args.report](conn, args.limit)

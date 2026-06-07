@@ -33,6 +33,7 @@ class WebRoutesTest(unittest.IsolatedAsyncioTestCase):
                 logs = await client.get("/api/v1/logs", params={"status": "401", "limit": "-1"})
                 invalid = await client.get("/api/v1/logs", params={"status": "abc"})
                 unknown = await client.get("/api/not-a-report")
+                parse_errors = await client.get("/api/v1/metrics/parse-errors")
 
         self.assertEqual(health.status_code, 200)
         self.assertEqual(health.json(), {"status": "ok"})
@@ -42,6 +43,9 @@ class WebRoutesTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(invalid.status_code, 400)
         self.assertEqual(unknown.status_code, 200)
         self.assertEqual(unknown.json(), [])
+        self.assertEqual(parse_errors.status_code, 200)
+        self.assertEqual(len(parse_errors.json()), 1)
+        self.assertEqual(parse_errors.json()[0]["log_type"], "access")
 
     async def test_sql_log_api_route_filters(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -60,11 +64,15 @@ class WebRoutesTest(unittest.IsolatedAsyncioTestCase):
                     params={"statement_type": "SELECT", "min_duration_ms": "100"},
                 )
                 invalid = await client.get("/api/v1/sql-logs", params={"min_duration_ms": "slow"})
+                parse_errors = await client.get("/api/v1/metrics/parse-errors")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 2)
         self.assertTrue(all(row["statement_type"] == "SELECT" for row in response.json()))
         self.assertEqual(invalid.status_code, 400)
+        self.assertEqual(parse_errors.status_code, 200)
+        self.assertEqual(len(parse_errors.json()), 1)
+        self.assertEqual(parse_errors.json()[0]["log_type"], "sql")
 
 
 if __name__ == "__main__":

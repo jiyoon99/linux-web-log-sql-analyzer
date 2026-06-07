@@ -23,6 +23,7 @@ class DatabaseTest(unittest.TestCase):
                 overview = analyzer.overview(conn)
                 suspicious = analyzer.suspicious_ips(conn)
                 login_logs = analyzer.search_access_logs(conn, path="/login", status=401)
+                parse_errors = analyzer.parse_errors(conn)
             finally:
                 conn.close()
 
@@ -33,6 +34,8 @@ class DatabaseTest(unittest.TestCase):
         self.assertGreaterEqual(overview["client_errors"], 4)
         self.assertTrue(any(row["remote_addr"] == "198.51.100.8" for row in suspicious))
         self.assertEqual(len(login_logs), 2)
+        self.assertEqual(len(parse_errors), 1)
+        self.assertEqual(parse_errors[0]["log_type"], "access")
 
     def test_access_ingest_skips_existing_source_lines(self):
         sample = Path(__file__).resolve().parents[1] / "samples" / "nginx-access.log"
@@ -119,6 +122,7 @@ class DatabaseTest(unittest.TestCase):
                 sql_types = analyzer.sql_types(conn)
                 filtered = analyzer.search_sql_logs(conn, statement_type="SELECT", min_duration_ms=100)
                 limited = analyzer.slow_sql(conn, -1)
+                parse_errors = analyzer.parse_errors(conn)
             finally:
                 conn.close()
 
@@ -131,6 +135,8 @@ class DatabaseTest(unittest.TestCase):
         self.assertEqual(len(filtered), 2)
         self.assertGreaterEqual(len(limited), 1)
         self.assertLessEqual(len(limited), analyzer.MAX_LIMIT)
+        self.assertEqual(len(parse_errors), 1)
+        self.assertEqual(parse_errors[0]["log_type"], "sql")
 
     def test_sql_ingest_skips_existing_source_lines(self):
         sample = Path(__file__).resolve().parents[1] / "samples" / "sql-execution.log"
